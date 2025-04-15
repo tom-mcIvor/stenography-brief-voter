@@ -1,0 +1,29 @@
+
+ts-jest[ts-jest-transformer] (WARN) Define `ts-jest` config under `globals` is deprecated. Please do
+transform: {
+    <transform_regex>: ['ts-jest', { /* ts-jest config goes here in Jest */ }],       
+},
+See more at https://kulshekhar.github.io/ts-jest/docs/getting-started/presets#advanced FAIL  tests/db.test.ts
+  ● Test suite failed to run
+
+    @prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
+
+       5 | export const prisma =
+       6 |   globalForPrisma.prisma ||
+    >  7 |   new PrismaClient({
+         |   ^
+       8 |     log: ['query'],
+       9 |   })
+      10 |
+
+      at new PrismaClient (node_modules/.prisma/client/default.js:43:11)
+      at Object.<anonymous> (lib/prisma.ts:7:3)
+      at Object.<anonymous> (tests/db.test.ts:1:1)
+
+Test Suites: 1 failed, 1 total
+Tests:       0 total
+Snapshots:   0 total
+Time:        0.493 s
+Ran all test suites.
+╭─thomas@DESKTOP-PC4HPS4 ~/Dev-Academy-Backup/plover-brief-voting ‹add-data-base●›    
+╰─$                         npx prisma generate
