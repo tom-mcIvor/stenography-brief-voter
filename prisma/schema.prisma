@@ -1,0 +1,43 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "./generated/client"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  words     Word[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Word {
+  id          Int      @id @default(autoincrement())
+  word        String
+  description String
+  examples    String
+  frequency   Int?
+  briefs      Brief[]
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Brief {
+  id        Int      @id @default(autoincrement())
+  brief     String
+  votes     Int      @default(0)
+  theory    String
+  wordId    Int
+  word      Word     @relation(fields: [wordId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+} 
