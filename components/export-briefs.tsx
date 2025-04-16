@@ -95,22 +95,22 @@ export function ExportBriefs() {
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="philadelphia"
-                  checked={selectedTheories.includes("philadelphia")}
-                  onCheckedChange={() => handleTheoryChange("philadelphia")}
+                  id="lapwing"
+                  checked={selectedTheories.includes("lapwing")}
+                  onCheckedChange={() => handleTheoryChange("lapwing")}
                 />
-                <Label htmlFor="philadelphia" className="text-sm font-normal">
-                  Philadelphia
+                <Label htmlFor="lapwing" className="text-sm font-normal">
+                  Lapwing Theory
                 </Label>
               </div>
               <div className="flex items-center space-x-2">
                 <Checkbox
-                  id="chicago"
-                  checked={selectedTheories.includes("chicago")}
-                  onCheckedChange={() => handleTheoryChange("chicago")}
+                  id="other"
+                  checked={selectedTheories.includes("other")}
+                  onCheckedChange={() => handleTheoryChange("other")}
                 />
-                <Label htmlFor="chicago" className="text-sm font-normal">
-                  Chicago Theory
+                <Label htmlFor="other" className="text-sm font-normal">
+                  Other/Custom
                 </Label>
               </div>
             </div>

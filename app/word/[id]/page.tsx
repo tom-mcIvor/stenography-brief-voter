@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { CreateBriefButton } from "@/components/create-brief-button"
 import { useToast } from "@/hooks/use-toast"
-import { TheoryBadge, type TheoryKey, theories } from "@/components/theory-index"
+import { type TheoryKey, theories } from "@/components/theory-index"
 import { TheoryIndex } from "@/components/theory-index"
 
 export default function WordDetailPage({ params }: { params: { id: string } }) {
@@ -129,15 +129,18 @@ export default function WordDetailPage({ params }: { params: { id: string } }) {
             </CardHeader>
             <CardContent className="space-y-4">
               {word.briefs.map((brief) => (
-                <div key={brief.id} className="flex items-center justify-between p-3 rounded-md border">
-                  <div className="space-y-2">
-                    <span className={`font-mono text-lg px-2 py-1 rounded ${theories[brief.theory].color}`}>
-                      {brief.brief}
-                    </span>
+                <div key={brief.id} className="flex items-center justify-between p-3 rounded-md border group relative">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground">{brief.votes} votes</span>
-                      <TheoryBadge theory={brief.theory} />
+                      <div
+                        className={`w-3 h-12 rounded-l-md ${theories[brief.theory]?.color.split(" ")[0] || theories.other.color.split(" ")[0]}`}
+                      />
+                      <span className="font-mono text-lg px-2 py-1 rounded">{brief.brief}</span>
                     </div>
+                    <span className="text-sm text-muted-foreground">{brief.votes} votes</span>
+                  </div>
+                  <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/80 text-white text-xs px-2 py-1 rounded top-0 right-12 pointer-events-none">
+                    {theories[brief.theory]?.name || "Unknown Theory"}
                   </div>
                   <Button
                     variant={brief.isUserVoted ? "secondary" : "outline"}
