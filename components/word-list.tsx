@@ -7,7 +7,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge"
 import { CreateBriefButton } from "./create-brief-button"
 import { useToast } from "@/hooks/use-toast"
-import { TheoryBadge, type TheoryKey } from "./theory-index"
+import { type TheoryKey, theories } from "./theory-index"
 
 // Updated interface for briefs with theory
 interface Brief {
@@ -44,7 +44,7 @@ const sampleWords = [
     word: "to",
     briefs: [
       { id: 6, brief: "TO", votes: 0, isUserVoted: false, theory: "stened" as TheoryKey },
-      { id: 7, brief: "T-", votes: 0, isUserVoted: false, theory: "plover" as TheoryKey },
+      { id: 7, brief: "TO", votes: 0, isUserVoted: false, theory: "plover" as TheoryKey },
     ],
     frequency: 3,
   },
@@ -52,8 +52,8 @@ const sampleWords = [
     id: 4,
     word: "of",
     briefs: [
-      { id: 8, brief: "OF", votes: 0, isUserVoted: false, theory: "chicago" as TheoryKey },
-      { id: 9, brief: "-F", votes: 0, isUserVoted: false, theory: "philadelphia" as TheoryKey },
+      { id: 8, brief: "OF", votes: 0, isUserVoted: false, theory: "other" as TheoryKey },
+      { id: 9, brief: "-F", votes: 0, isUserVoted: false, theory: "lapwing" as TheoryKey },
     ],
     frequency: 4,
   },
@@ -68,16 +68,6 @@ const sampleWords = [
     frequency: 5,
   },
 ]
-
-const theories = {
-  phoenix: { color: "bg-red-100 text-red-800" },
-  stened: { color: "bg-green-100 text-green-800" },
-  plover: { color: "bg-blue-100 text-blue-800" },
-  chicago: { color: "bg-yellow-100 text-yellow-800" },
-  philadelphia: { color: "bg-purple-100 text-purple-800" },
-  magnum: { color: "bg-orange-100 text-orange-800" },
-  other: { color: "bg-gray-100 text-gray-800" },
-}
 
 export default function WordList() {
   const [words, setWords] = useState(sampleWords)
@@ -197,15 +187,21 @@ export default function WordList() {
           </div>
           <div className="space-y-2">
             {word.briefs.map((brief) => (
-              <div key={brief.id} className="flex items-center justify-between p-2 rounded-md border bg-background">
+              <div
+                key={brief.id}
+                className="flex items-center justify-between p-2 rounded-md border bg-background group relative"
+              >
                 <div className="flex items-center gap-4">
-                  <span className={`font-mono text-sm px-2 py-1 rounded ${theories[brief.theory].color}`}>
-                    {brief.brief}
-                  </span>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-sm text-muted-foreground">{brief.votes} votes</span>
-                    <TheoryBadge theory={brief.theory} />
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-3 h-12 rounded-l-md ${theories[brief.theory]?.color.split(" ")[0] || theories.other.color.split(" ")[0]}`}
+                    />
+                    <span className="font-mono text-sm px-2 py-1 rounded">{brief.brief}</span>
                   </div>
+                  <span className="text-sm text-muted-foreground">{brief.votes} votes</span>
+                </div>
+                <div className="absolute opacity-0 group-hover:opacity-100 transition-opacity duration-200 bg-black/80 text-white text-xs px-2 py-1 rounded top-0 right-12 pointer-events-none">
+                  {theories[brief.theory]?.name || "Unknown Theory"}
                 </div>
                 <Button
                   variant={brief.isUserVoted ? "secondary" : "ghost"}
