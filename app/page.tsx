@@ -1,20 +1,57 @@
-import { Search } from "lucide-react"
-import Link from "next/link"
-import WordList from "@/components/word-list"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { AddWordButton } from "@/components/add-word-button"
-import { TheoryIndex } from "@/components/theory-index"
-import { UserAccountNav } from "@/components/user-account-nav"
+'use client'
+
+import { Search } from 'lucide-react'
+import Link from 'next/link'
+import WordList from '@/components/word-list'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { AddWordButton } from '@/components/add-word-button'
+import { TheoryIndex } from '@/components/theory-index'
+import { UserAccountNav } from '@/components/user-account-nav'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Home() {
+  const { toast } = useToast()
+
+  const handleAddWord = async (
+    word: string,
+    description: string,
+    examples: string[],
+    initialBrief: string
+  ) => {
+    try {
+      const response = await fetch('/api/words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, description, examples, initialBrief }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add word')
+      }
+
+      toast({
+        title: 'Word added successfully',
+        description: `"${word}" has been added to the database with your brief.`,
+      })
+    } catch (error) {
+      console.error('Error adding word:', error)
+      toast({
+        title: 'Failed to add word',
+        description: 'There was an error adding the word. Please try again.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-8">
       <header className="flex items-center justify-between">
         <div className="space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">StenoBriefs</h1>
           <p className="text-muted-foreground">
-            Vote for the best stenography briefs for the most common English words
+            Vote for the best stenography briefs for the most common English
+            words
           </p>
         </div>
         <div className="flex items-center gap-4">
@@ -30,10 +67,14 @@ export default function Home() {
           <div className="flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input type="search" placeholder="Search words..." className="pl-8" />
+              <Input
+                type="search"
+                placeholder="Search words..."
+                className="pl-8"
+              />
             </div>
             <Button variant="outline">Filter</Button>
-            <AddWordButton />
+            <AddWordButton onAddWord={handleAddWord} />
           </div>
 
           <div className="rounded-lg border shadow-sm">
@@ -78,7 +119,8 @@ export default function Home() {
               Upgrade to Pro
             </h3>
             <p className="text-sm text-amber-800 mb-3">
-              Get access to premium features like analytics, practice drills, and unlimited exports.
+              Get access to premium features like analytics, practice drills,
+              and unlimited exports.
             </p>
             <Button size="sm" className="w-full" asChild>
               <Link href="/pricing">View Plans</Link>

@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server'
-import type { TheoryKey } from '@/components/theory-index'
-import db from '@/lib/db/db'
+import knex from '@/lib/db/connection'
 
 export async function POST(request: Request) {
   try {
-    const {
-      word,
-      description,
-      examples,
-      initialBrief,
-      theory = 'phoenix',
-    } = await request.json()
+    const body = await request.json()
+    const { word, description, examples, initialBrief } = body
 
     // Validate required fields
     if (!word || !description || !examples || !initialBrief) {
@@ -20,36 +14,36 @@ export async function POST(request: Request) {
       )
     }
 
-    // Add the word to the database
-    const [wordId] = await db.addWord({
+    // Add the word
+    const [wordId] = await knex('words').insert({
       word,
-      userId: 1, // TODO: Replace with actual user ID from authentication
+      description,
+      examples: JSON.stringify(examples),
+      user_id: 1, // TODO: Get from session
+      created_at: new Date(),
     })
 
     // Add the initial brief vote
-    await db.addBriefVote({
-      wordId,
-      userId: 1, // TODO: Replace with actual user ID from authentication
+    await knex('brief_votes').insert({
+      word_id: wordId,
+      user_id: 1, // TODO: Get from session
       brief: initialBrief,
-      theory: theory as TheoryKey,
+      theory: 'phoenix', // Default theory
+      votes: 0,
+      created_at: new Date(),
     })
 
     // Get the created word with its brief votes
-    const createdWord = await db.getWordById(wordId)
-    const briefVotes = await db.getBriefVotesByWordId(wordId)
+    const createdWord = await knex('words').where('id', wordId).first()
 
-    // Return the created word with its brief votes
+    const briefVotes = await knex('brief_votes')
+      .where('word_id', wordId)
+      .select('*')
+
     return NextResponse.json(
       {
         ...createdWord,
-        description,
-        examples,
-        briefs: briefVotes.map((vote) => ({
-          id: vote.id,
-          brief: vote.brief,
-          votes: 0, // TODO: Implement vote counting
-          theory: vote.theory,
-        })),
+        briefs: briefVotes,
       },
       { status: 201 }
     )
