@@ -80,7 +80,16 @@ export function AddWordButton({
   }
 
   const handleSubmit = async () => {
+    console.log('Form submission started', {
+      word,
+      description,
+      examples,
+      initialBrief,
+      theory,
+    })
+
     if (!validateForm()) {
+      console.log('Form validation failed', errors)
       return
     }
 
@@ -90,7 +99,10 @@ export function AddWordButton({
       .map((example) => example.trim())
       .filter((example) => example.length > 0)
 
+    console.log('Processed examples:', examplesList)
+
     try {
+      console.log('Calling onAddWord callback')
       // Call the onAddWord callback with the form data
       onAddWord(word, description, examplesList, initialBrief)
 
@@ -102,6 +114,7 @@ export function AddWordButton({
       setTheory('phoenix')
       setErrors({})
       setOpen(false)
+      console.log('Form submission completed successfully')
     } catch (error) {
       console.error('Error adding word:', error)
       toast({
