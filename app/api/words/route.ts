@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import type { TheoryKey } from '@/components/theory-index'
-import knex from '@/lib/db/connection'
+import knex from '@/lib/db/next-connection'
 
 // This would be replaced with a database in a real application
 let nextWordId = 6 // Starting after our sample data
