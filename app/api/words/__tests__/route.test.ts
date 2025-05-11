@@ -1,5 +1,6 @@
+import { jest } from '@jest/globals'
 import { POST } from '../route'
-import knex from '@/lib/db/connection'
+import knex from '@/lib/db/connection.js'
 
 // Mock the database connection
 jest.mock('@/lib/db/connection', () => {
@@ -47,7 +48,7 @@ describe('Words API Route', () => {
     ]
 
     // Setup mocks with proper chaining
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = (knex as unknown as jest.Mocked<NonNullable<typeof knex>>)!
     mockKnex.insert.mockReturnThis()
     mockKnex.where.mockReturnThis()
     mockKnex.first.mockReturnThis()
@@ -104,12 +105,12 @@ describe('Words API Route', () => {
     // Assertions
     expect(response.status).toBe(400)
     expect(data).toHaveProperty('error', 'Missing required fields')
-    expect(knex.insert).not.toHaveBeenCalled()
+    expect((knex as NonNullable<typeof knex>).insert).not.toHaveBeenCalled()
   })
 
   test('should return 500 when database operation fails', async () => {
     // Mock database error
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = (knex as unknown as jest.Mocked<NonNullable<typeof knex>>)!
     mockKnex.insert.mockReturnThis()
     mockKnex.into.mockRejectedValueOnce(new Error('Database error'))
 
@@ -139,7 +140,7 @@ describe('Words API Route', () => {
     const examples = ['example1', 'example2']
 
     // Setup mocks with proper chaining
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = (knex as unknown as jest.Mocked<NonNullable<typeof knex>>)!
     mockKnex.insert.mockReturnThis()
     mockKnex.where.mockReturnThis()
     mockKnex.first.mockReturnThis()

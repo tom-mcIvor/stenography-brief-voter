@@ -5,13 +5,10 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { Toaster } from '@/components/ui/toaster'
 
 const inter = Inter({ subsets: ['latin'] })
-<<<<<<< HEAD
-=======
 
 export const metadata = {
   generator: 'v0.dev',
 }
->>>>>>> origin/test-the-db
 
 export default function RootLayout({
   children,
@@ -34,11 +31,3 @@ export default function RootLayout({
     </html>
   )
 }
-
-import './globals.css'
-<<<<<<< HEAD
-export const metadata = {
-  generator: 'v0.dev',
-}
-=======
->>>>>>> origin/test-the-db

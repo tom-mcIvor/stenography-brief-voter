@@ -1,9 +1,6 @@
 'use client'
 
-<<<<<<< HEAD
 import { useState } from 'react'
-=======
->>>>>>> origin/test-the-db
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import WordList from '@/components/word-list'
@@ -12,8 +9,8 @@ import { Input } from '@/components/ui/input'
 import { AddWordButton } from '@/components/add-word-button'
 import { TheoryIndex } from '@/components/theory-index'
 import { UserAccountNav } from '@/components/user-account-nav'
-<<<<<<< HEAD
 import { type TheoryKey } from '@/components/theory-index'
+import { useToast } from '@/hooks/use-toast'
 
 // Sample data - in a real app, this would come from a database
 const sampleWords = [
@@ -139,6 +136,7 @@ const sampleWords = [
 ]
 
 export default function Home() {
+  const { toast } = useToast()
   const [words, setWords] = useState(sampleWords)
 
   // Generate a unique ID for new words
@@ -154,120 +152,6 @@ export default function Home() {
     return Math.max(...allBriefIds) + 1
   }
 
-  const handleAddWord = (
-    word: string,
-    description: string,
-    examples: string[],
-    initialBrief: string,
-    theory: TheoryKey
-  ) => {
-    // Check if word already exists
-    const wordExists = words.some(
-      (w) => w.word.toLowerCase() === word.toLowerCase()
-    )
-
-    if (wordExists) {
-      return false
-    }
-
-    // Create new word
-    const newWord = {
-      id: getNextWordId(),
-      word,
-      description,
-      examples,
-      frequency: null, // Would be calculated in a real app
-      briefs: [
-        {
-          id: getNextBriefId(),
-          brief: initialBrief,
-          votes: 0,
-          isUserVoted: false,
-          theory,
-        },
-      ],
-    }
-
-    // Add the new word to the beginning of the list
-    setWords([newWord, ...words])
-    return true
-  }
-
-  const handleVote = (wordId: number, briefId: number) => {
-    setWords(
-      words.map((word) => {
-        if (word.id === wordId) {
-          return {
-            ...word,
-            briefs: word.briefs.map((brief) => {
-              if (brief.id === briefId) {
-                // Toggle vote state
-                if (brief.isUserVoted) {
-                  // If already voted, remove the vote
-                  return {
-                    ...brief,
-                    votes: brief.votes - 1,
-                    isUserVoted: false,
-                  }
-                } else {
-                  // If not voted, add a vote
-                  return {
-                    ...brief,
-                    votes: brief.votes + 1,
-                    isUserVoted: true,
-                  }
-                }
-              }
-              return brief
-            }),
-          }
-        }
-        return word
-      })
-    )
-  }
-
-  const handleCreateBrief = (
-    wordId: number,
-    briefText: string,
-    explanation: string,
-    theory: TheoryKey
-  ) => {
-    setWords(
-      words.map((word) => {
-        if (word.id === wordId) {
-          // Check if this brief already exists
-          const briefExists = word.briefs.some(
-            (brief) => brief.brief.toLowerCase() === briefText.toLowerCase()
-          )
-
-          if (briefExists) {
-            return word
-          }
-
-          // Add the new brief
-          const newBrief = {
-            id: getNextBriefId(),
-            brief: briefText,
-            votes: 0, // Start with 0 votes
-            isUserVoted: false, // User hasn't voted yet
-            theory: theory,
-          }
-
-          return {
-            ...word,
-            briefs: [...word.briefs, newBrief],
-          }
-        }
-        return word
-      })
-    )
-=======
-import { useToast } from '@/hooks/use-toast'
-
-export default function Home() {
-  const { toast } = useToast()
-
   const handleAddWord = async (
     word: string,
     description: string,
@@ -277,116 +161,136 @@ export default function Home() {
     try {
       const response = await fetch('/api/words', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, description, examples, initialBrief }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          word,
+          description,
+          examples,
+          initialBrief,
+        }),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to add word')
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to add word')
       }
 
+      const newWord = await response.json()
+      setWords([newWord, ...words])
       toast({
-        title: 'Word added successfully',
-        description: `"${word}" has been added to the database with your brief.`,
+        title: 'Success',
+        description: 'Word added successfully',
+      })
+      return true
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'Failed to add word',
+        variant: 'destructive',
+      })
+      return false
+    }
+  }
+
+  const handleVote = async (wordId: number, briefId: number) => {
+    try {
+      const response = await fetch(
+        `/api/words/${wordId}/briefs/${briefId}/vote`,
+        {
+          method: 'POST',
+        }
+      )
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to vote')
+      }
+
+      const updatedWord = await response.json()
+      setWords(words.map((word) => (word.id === wordId ? updatedWord : word)))
+      toast({
+        title: 'Success',
+        description: 'Vote recorded successfully',
       })
     } catch (error) {
-      console.error('Error adding word:', error)
       toast({
-        title: 'Failed to add word',
-        description: 'There was an error adding the word. Please try again.',
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to vote',
         variant: 'destructive',
       })
     }
->>>>>>> origin/test-the-db
+  }
+
+  const handleCreateBrief = async (
+    wordId: number,
+    briefText: string,
+    explanation: string,
+    theory: TheoryKey
+  ) => {
+    try {
+      const response = await fetch(`/api/words/${wordId}/briefs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brief: briefText,
+          explanation,
+          theory,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create brief')
+      }
+
+      const updatedWord = await response.json()
+      setWords(words.map((word) => (word.id === wordId ? updatedWord : word)))
+      toast({
+        title: 'Success',
+        description: 'Brief created successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description:
+          error instanceof Error ? error.message : 'Failed to create brief',
+        variant: 'destructive',
+      })
+    }
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-8">
-      <header className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">StenoBriefs</h1>
-          <p className="text-muted-foreground">
-            Vote for the best stenography briefs for the most common English
-            words
-          </p>
-        </div>
+    <div className="container mx-auto py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Plover Brief Voting</h1>
         <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
+          <TheoryIndex />
           <UserAccountNav />
         </div>
-      </header>
-
-      <div className="grid md:grid-cols-4 gap-6">
-        <div className="md:col-span-3 space-y-6">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search words..."
-                className="pl-8"
-              />
-            </div>
-            <Button variant="outline">Filter</Button>
-            <AddWordButton onAddWord={handleAddWord} />
-          </div>
-
-          <div className="rounded-lg border shadow-sm">
-            <div className="p-4 flex items-center justify-between border-b bg-muted/50">
-              <h2 className="font-semibold">Top 1,000 Common Words</h2>
-              <div className="flex items-center gap-2 text-sm">
-                <span>Sort by:</span>
-                <select className="border rounded px-2 py-1 text-sm bg-background">
-                  <option>Alphabetical</option>
-                  <option>Most Voted</option>
-                  <option>Recently Added</option>
-                </select>
-              </div>
-            </div>
-            <WordList
-              words={words}
-              onVote={handleVote}
-              onCreateBrief={handleCreateBrief}
-            />
-          </div>
-        </div>
-        <div className="md:col-span-1 space-y-6">
-          <TheoryIndex />
-
-          <div className="rounded-lg border p-4 bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
-            <h3 className="font-medium text-amber-900 mb-2 flex items-center gap-2">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="lucide lucide-sparkles"
-              >
-                <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                <path d="M5 3v4" />
-                <path d="M3 5h4" />
-                <path d="M19 17v4" />
-                <path d="M17 19h4" />
-              </svg>
-              Upgrade to Pro
-            </h3>
-            <p className="text-sm text-amber-800 mb-3">
-              Get access to premium features like analytics, practice drills,
-              and unlimited exports.
-            </p>
-            <Button size="sm" className="w-full" asChild>
-              <Link href="/pricing">View Plans</Link>
-            </Button>
-          </div>
-        </div>
       </div>
+
+      <div className="flex gap-4 mb-8">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+          <Input
+            type="search"
+            placeholder="Search words..."
+            className="pl-10"
+          />
+        </div>
+        <AddWordButton onAddWord={handleAddWord} />
+      </div>
+
+      <WordList
+        words={words}
+        onVote={handleVote}
+        onCreateBrief={handleCreateBrief}
+      />
     </div>
   )
 }
