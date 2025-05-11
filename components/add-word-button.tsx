@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -13,26 +13,46 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle } from "lucide-react"
-import { type TheoryKey, theories } from "./theory-index"
-import { useToast } from "@/hooks/use-toast"
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { PlusCircle } from 'lucide-react'
+import { type TheoryKey, theories } from './theory-index'
+import { useToast } from '@/hooks/use-toast'
 
 export function AddWordButton({
-  variant = "default",
-  size = "default",
+  variant = 'default',
+  size = 'default',
   className,
+  onAddWord,
 }: {
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
-  size?: "default" | "sm" | "lg" | "icon"
+  variant?:
+    | 'default'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
+    | 'destructive'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
   className?: string
+  onAddWord?: (
+    word: string,
+    description: string,
+    examples: string[],
+    initialBrief: string,
+    theory: TheoryKey
+  ) => boolean
 }) {
-  const [word, setWord] = useState("")
-  const [description, setDescription] = useState("")
-  const [examples, setExamples] = useState("")
-  const [initialBrief, setInitialBrief] = useState("")
-  const [theory, setTheory] = useState<TheoryKey>("phoenix")
+  const [word, setWord] = useState('')
+  const [description, setDescription] = useState('')
+  const [examples, setExamples] = useState('')
+  const [initialBrief, setInitialBrief] = useState('')
+  const [theory, setTheory] = useState<TheoryKey>('phoenix')
   const [open, setOpen] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const { toast } = useToast()
@@ -41,19 +61,19 @@ export function AddWordButton({
     const newErrors: Record<string, string> = {}
 
     if (!word.trim()) {
-      newErrors.word = "Word is required"
+      newErrors.word = 'Word is required'
     }
 
     if (!description.trim()) {
-      newErrors.description = "Description is required"
+      newErrors.description = 'Description is required'
     }
 
     if (!examples.trim()) {
-      newErrors.examples = "At least one example is required"
+      newErrors.examples = 'At least one example is required'
     }
 
     if (!initialBrief.trim()) {
-      newErrors.initialBrief = "Initial brief is required"
+      newErrors.initialBrief = 'Initial brief is required'
     }
 
     setErrors(newErrors)
@@ -67,7 +87,7 @@ export function AddWordButton({
 
     // Split examples by new line
     const examplesList = examples
-      .split("\n")
+      .split('\n')
       .map((example) => example.trim())
       .filter((example) => example.length > 0)
 
@@ -82,27 +102,51 @@ export function AddWordButton({
       // if (!response.ok) throw new Error('Failed to add word');
 
       // For demo purposes, we'll just log the data
-      console.log({ word, description, examples: examplesList, initialBrief, theory })
+      console.log({
+        word,
+        description,
+        examples: examplesList,
+        initialBrief,
+        theory,
+      })
+
+      // Call the onAddWord callback if provided
+      const success = onAddWord?.(
+        word,
+        description,
+        examplesList,
+        initialBrief,
+        theory
+      )
+
+      if (success === false) {
+        toast({
+          title: 'Word already exists',
+          description: `The word "${word}" is already in the database.`,
+          variant: 'destructive',
+        })
+        return
+      }
 
       toast({
-        title: "Word added successfully",
+        title: 'Word added successfully',
         description: `"${word}" has been added to the database with your brief.`,
       })
 
       // Reset form and close dialog
-      setWord("")
-      setDescription("")
-      setExamples("")
-      setInitialBrief("")
-      setTheory("phoenix")
+      setWord('')
+      setDescription('')
+      setExamples('')
+      setInitialBrief('')
+      setTheory('phoenix')
       setErrors({})
       setOpen(false)
     } catch (error) {
-      console.error("Error adding word:", error)
+      console.error('Error adding word:', error)
       toast({
-        title: "Failed to add word",
-        description: "There was an error adding the word. Please try again.",
-        variant: "destructive",
+        title: 'Failed to add word',
+        description: 'There was an error adding the word. Please try again.',
+        variant: 'destructive',
       })
     }
   }
@@ -118,15 +162,24 @@ export function AddWordButton({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Add a new word</DialogTitle>
-          <DialogDescription>Add a word that's missing from our stenography database.</DialogDescription>
+          <DialogDescription>
+            Add a word that's missing from our stenography database.
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
             <Label htmlFor="word" className="font-medium">
               Word
             </Label>
-            <Input id="word" value={word} onChange={(e) => setWord(e.target.value)} placeholder="Enter the word" />
-            {errors.word && <p className="text-sm text-red-500">{errors.word}</p>}
+            <Input
+              id="word"
+              value={word}
+              onChange={(e) => setWord(e.target.value)}
+              placeholder="Enter the word"
+            />
+            {errors.word && (
+              <p className="text-sm text-red-500">{errors.word}</p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -140,7 +193,9 @@ export function AddWordButton({
               placeholder="Provide a brief description of the word"
               rows={2}
             />
-            {errors.description && <p className="text-sm text-red-500">{errors.description}</p>}
+            {errors.description && (
+              <p className="text-sm text-red-500">{errors.description}</p>
+            )}
           </div>
 
           <div className="grid gap-2">
@@ -154,8 +209,12 @@ export function AddWordButton({
               placeholder="Enter examples of the word in sentences (one per line)"
               rows={3}
             />
-            {errors.examples && <p className="text-sm text-red-500">{errors.examples}</p>}
-            <p className="text-xs text-muted-foreground">Enter each example on a new line</p>
+            {errors.examples && (
+              <p className="text-sm text-red-500">{errors.examples}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              Enter each example on a new line
+            </p>
           </div>
 
           <div className="grid gap-2">
@@ -169,14 +228,19 @@ export function AddWordButton({
               placeholder="Suggest an initial stenography brief"
               className="font-mono"
             />
-            {errors.initialBrief && <p className="text-sm text-red-500">{errors.initialBrief}</p>}
+            {errors.initialBrief && (
+              <p className="text-sm text-red-500">{errors.initialBrief}</p>
+            )}
           </div>
 
           <div className="grid gap-2">
             <Label htmlFor="theory" className="font-medium">
               Stenography Theory
             </Label>
-            <Select value={theory} onValueChange={(value) => setTheory(value as TheoryKey)}>
+            <Select
+              value={theory}
+              onValueChange={(value) => setTheory(value as TheoryKey)}
+            >
               <SelectTrigger id="theory">
                 <SelectValue placeholder="Select a theory" />
               </SelectTrigger>
@@ -188,7 +252,9 @@ export function AddWordButton({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">Select the stenography theory for this brief</p>
+            <p className="text-xs text-muted-foreground">
+              Select the stenography theory for this brief
+            </p>
           </div>
         </div>
         <DialogFooter>

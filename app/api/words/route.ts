@@ -1,16 +1,25 @@
-import { NextResponse } from "next/server"
-import type { TheoryKey } from "@/components/theory-index"
+import { NextResponse } from 'next/server'
+import type { TheoryKey } from '@/components/theory-index'
 
 // This would be replaced with a database in a real application
 let nextWordId = 6 // Starting after our sample data
 
 export async function POST(request: Request) {
   try {
-    const { word, description, examples, initialBrief, theory = "phoenix" } = await request.json()
+    const {
+      word,
+      description,
+      examples,
+      initialBrief,
+      theory = 'phoenix',
+    } = await request.json()
 
     // Validate required fields
     if (!word || !description || !examples || !initialBrief) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      )
     }
 
     // In a real app, you would save this to a database
@@ -33,7 +42,7 @@ export async function POST(request: Request) {
     // Return the created word
     return NextResponse.json(newWord, { status: 201 })
   } catch (error) {
-    console.error("Error adding word:", error)
-    return NextResponse.json({ error: "Failed to add word" }, { status: 500 })
+    console.error('Error adding word:', error)
+    return NextResponse.json({ error: 'Failed to add word' }, { status: 500 })
   }
 }
