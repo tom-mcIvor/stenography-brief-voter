@@ -1,6 +1,9 @@
 'use client'
 
+<<<<<<< HEAD
 import { useState } from 'react'
+=======
+>>>>>>> origin/test-the-db
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import WordList from '@/components/word-list'
@@ -9,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { AddWordButton } from '@/components/add-word-button'
 import { TheoryIndex } from '@/components/theory-index'
 import { UserAccountNav } from '@/components/user-account-nav'
+<<<<<<< HEAD
 import { type TheoryKey } from '@/components/theory-index'
 
 // Sample data - in a real app, this would come from a database
@@ -258,6 +262,42 @@ export default function Home() {
         return word
       })
     )
+=======
+import { useToast } from '@/hooks/use-toast'
+
+export default function Home() {
+  const { toast } = useToast()
+
+  const handleAddWord = async (
+    word: string,
+    description: string,
+    examples: string[],
+    initialBrief: string
+  ) => {
+    try {
+      const response = await fetch('/api/words', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word, description, examples, initialBrief }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to add word')
+      }
+
+      toast({
+        title: 'Word added successfully',
+        description: `"${word}" has been added to the database with your brief.`,
+      })
+    } catch (error) {
+      console.error('Error adding word:', error)
+      toast({
+        title: 'Failed to add word',
+        description: 'There was an error adding the word. Please try again.',
+        variant: 'destructive',
+      })
+    }
+>>>>>>> origin/test-the-db
   }
 
   return (

@@ -1,4 +1,5 @@
 'use client'
+'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -26,19 +27,13 @@ import { type TheoryKey, theories } from './theory-index'
 import { useToast } from '@/hooks/use-toast'
 
 export function AddWordButton({
-  variant = 'default',
-  size = 'default',
+  variant = "default",
+  size = "default",
   className,
   onAddWord,
 }: {
-  variant?:
-    | 'default'
-    | 'outline'
-    | 'secondary'
-    | 'ghost'
-    | 'link'
-    | 'destructive'
-  size?: 'default' | 'sm' | 'lg' | 'icon'
+  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
+  size?: "default" | "sm" | "lg" | "icon"
   className?: string
   onAddWord?: (
     word: string,
@@ -81,7 +76,16 @@ export function AddWordButton({
   }
 
   const handleSubmit = async () => {
+    console.log('Form submission started', {
+      word,
+      description,
+      examples,
+      initialBrief,
+      theory,
+    })
+
     if (!validateForm()) {
+      console.log('Form validation failed', errors)
       return
     }
 
@@ -102,34 +106,10 @@ export function AddWordButton({
       // if (!response.ok) throw new Error('Failed to add word');
 
       // For demo purposes, we'll just log the data
-      console.log({
-        word,
-        description,
-        examples: examplesList,
-        initialBrief,
-        theory,
-      })
-
-      // Call the onAddWord callback if provided
-      const success = onAddWord?.(
-        word,
-        description,
-        examplesList,
-        initialBrief,
-        theory
-      )
-
-      if (success === false) {
-        toast({
-          title: 'Word already exists',
-          description: `The word "${word}" is already in the database.`,
-          variant: 'destructive',
-        })
-        return
-      }
+      console.log({ word, description, examples: examplesList, initialBrief, theory })
 
       toast({
-        title: 'Word added successfully',
+        title: "Word added successfully",
         description: `"${word}" has been added to the database with your brief.`,
       })
 
@@ -141,6 +121,7 @@ export function AddWordButton({
       setTheory('phoenix')
       setErrors({})
       setOpen(false)
+      console.log('Form submission completed successfully')
     } catch (error) {
       console.error('Error adding word:', error)
       toast({
