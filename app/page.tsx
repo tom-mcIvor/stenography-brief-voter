@@ -1,9 +1,6 @@
 'use client'
 
-<<<<<<< HEAD
 import { useState } from 'react'
-=======
->>>>>>> origin/test-the-db
 import { Search } from 'lucide-react'
 import Link from 'next/link'
 import WordList from '@/components/word-list'
@@ -12,8 +9,8 @@ import { Input } from '@/components/ui/input'
 import { AddWordButton } from '@/components/add-word-button'
 import { TheoryIndex } from '@/components/theory-index'
 import { UserAccountNav } from '@/components/user-account-nav'
-<<<<<<< HEAD
 import { type TheoryKey } from '@/components/theory-index'
+import { useToast } from '@/hooks/use-toast'
 
 // Sample data - in a real app, this would come from a database
 const sampleWords = [
@@ -139,166 +136,123 @@ const sampleWords = [
 ]
 
 export default function Home() {
+  const { toast } = useToast()
   const [words, setWords] = useState(sampleWords)
+  const [searchQuery, setSearchQuery] = useState('')
 
-  // Generate a unique ID for new words
-  const getNextWordId = () => {
-    return Math.max(...words.map((word) => word.id)) + 1
-  }
-
-  // Generate a unique ID for new briefs
-  const getNextBriefId = () => {
-    const allBriefIds = words.flatMap((word) =>
-      word.briefs.map((brief) => brief.id)
-    )
-    return Math.max(...allBriefIds) + 1
-  }
-
-  const handleAddWord = (
+  const handleAddWord = async (
     word: string,
     description: string,
     examples: string[],
     initialBrief: string,
     theory: TheoryKey
   ) => {
-    // Check if word already exists
-    const wordExists = words.some(
-      (w) => w.word.toLowerCase() === word.toLowerCase()
-    )
-
-    if (wordExists) {
-      return false
-    }
-
-    // Create new word
-    const newWord = {
-      id: getNextWordId(),
-      word,
-      description,
-      examples,
-      frequency: null, // Would be calculated in a real app
-      briefs: [
-        {
-          id: getNextBriefId(),
-          brief: initialBrief,
-          votes: 0,
-          isUserVoted: false,
-          theory,
-        },
-      ],
-    }
-
-    // Add the new word to the beginning of the list
-    setWords([newWord, ...words])
-    return true
-  }
-
-  const handleVote = (wordId: number, briefId: number) => {
-    setWords(
-      words.map((word) => {
-        if (word.id === wordId) {
-          return {
-            ...word,
-            briefs: word.briefs.map((brief) => {
-              if (brief.id === briefId) {
-                // Toggle vote state
-                if (brief.isUserVoted) {
-                  // If already voted, remove the vote
-                  return {
-                    ...brief,
-                    votes: brief.votes - 1,
-                    isUserVoted: false,
-                  }
-                } else {
-                  // If not voted, add a vote
-                  return {
-                    ...brief,
-                    votes: brief.votes + 1,
-                    isUserVoted: true,
-                  }
-                }
-              }
-              return brief
-            }),
-          }
-        }
-        return word
-      })
-    )
-  }
-
-  const handleCreateBrief = (
-    wordId: number,
-    briefText: string,
-    explanation: string,
-    theory: TheoryKey
-  ) => {
-    setWords(
-      words.map((word) => {
-        if (word.id === wordId) {
-          // Check if this brief already exists
-          const briefExists = word.briefs.some(
-            (brief) => brief.brief.toLowerCase() === briefText.toLowerCase()
-          )
-
-          if (briefExists) {
-            return word
-          }
-
-          // Add the new brief
-          const newBrief = {
-            id: getNextBriefId(),
-            brief: briefText,
-            votes: 0, // Start with 0 votes
-            isUserVoted: false, // User hasn't voted yet
-            theory: theory,
-          }
-
-          return {
-            ...word,
-            briefs: [...word.briefs, newBrief],
-          }
-        }
-        return word
-      })
-    )
-=======
-import { useToast } from '@/hooks/use-toast'
-
-export default function Home() {
-  const { toast } = useToast()
-
-  const handleAddWord = async (
-    word: string,
-    description: string,
-    examples: string[],
-    initialBrief: string
-  ) => {
     try {
       const response = await fetch('/api/words', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ word, description, examples, initialBrief }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          word,
+          description,
+          examples,
+          initialBrief,
+          theory,
+        }),
       })
 
       if (!response.ok) {
         throw new Error('Failed to add word')
       }
 
+      const newWord = await response.json()
+      setWords([newWord, ...words])
       toast({
-        title: 'Word added successfully',
-        description: `"${word}" has been added to the database with your brief.`,
+        title: 'Success',
+        description: 'Word added successfully',
+      })
+      return true
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to add word',
+        variant: 'destructive',
+      })
+      return false
+    }
+  }
+
+  const handleVote = async (wordId: number, briefId: number) => {
+    try {
+      const response = await fetch(`/api/words/${wordId}/vote`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ briefId }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to vote')
+      }
+
+      const updatedWord = await response.json()
+      setWords(words.map((word) => (word.id === wordId ? updatedWord : word)))
+      toast({
+        title: 'Success',
+        description: 'Vote recorded successfully',
       })
     } catch (error) {
-      console.error('Error adding word:', error)
       toast({
-        title: 'Failed to add word',
-        description: 'There was an error adding the word. Please try again.',
+        title: 'Error',
+        description: 'Failed to record vote',
         variant: 'destructive',
       })
     }
->>>>>>> origin/test-the-db
   }
+
+  const handleCreateBrief = async (
+    wordId: number,
+    briefText: string,
+    explanation: string,
+    theory: TheoryKey
+  ) => {
+    try {
+      const response = await fetch(`/api/words/${wordId}/briefs`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          brief: briefText,
+          explanation,
+          theory,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create brief')
+      }
+
+      const updatedWord = await response.json()
+      setWords(words.map((word) => (word.id === wordId ? updatedWord : word)))
+      toast({
+        title: 'Success',
+        description: 'Brief created successfully',
+      })
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to create brief',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const filteredWords = words.filter((word) =>
+    word.word.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div className="container mx-auto py-6 space-y-8">
@@ -326,6 +280,8 @@ export default function Home() {
               <Input
                 type="search"
                 placeholder="Search words..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-8"
               />
             </div>
@@ -346,7 +302,7 @@ export default function Home() {
               </div>
             </div>
             <WordList
-              words={words}
+              words={filteredWords}
               onVote={handleVote}
               onCreateBrief={handleCreateBrief}
             />
