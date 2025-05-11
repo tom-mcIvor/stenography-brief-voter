@@ -1,5 +1,4 @@
 'use client'
-'use client'
 
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -27,21 +26,26 @@ import { type TheoryKey, theories } from './theory-index'
 import { useToast } from '@/hooks/use-toast'
 
 export function AddWordButton({
-  variant = "default",
-  size = "default",
-  className,
   onAddWord,
+  variant = 'default',
+  size = 'default',
+  className,
 }: {
-  variant?: "default" | "outline" | "secondary" | "ghost" | "link" | "destructive"
-  size?: "default" | "sm" | "lg" | "icon"
-  className?: string
-  onAddWord?: (
+  onAddWord: (
     word: string,
     description: string,
     examples: string[],
-    initialBrief: string,
-    theory: TheoryKey
-  ) => boolean
+    initialBrief: string
+  ) => void
+  variant?:
+    | 'default'
+    | 'outline'
+    | 'secondary'
+    | 'ghost'
+    | 'link'
+    | 'destructive'
+  size?: 'default' | 'sm' | 'lg' | 'icon'
+  className?: string
 }) {
   const [word, setWord] = useState('')
   const [description, setDescription] = useState('')
@@ -95,23 +99,12 @@ export function AddWordButton({
       .map((example) => example.trim())
       .filter((example) => example.length > 0)
 
+    console.log('Processed examples:', examplesList)
+
     try {
-      // In a real app, you would call your API
-      // const response = await fetch('/api/words', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ word, description, examples: examplesList, initialBrief, theory }),
-      // });
-
-      // if (!response.ok) throw new Error('Failed to add word');
-
-      // For demo purposes, we'll just log the data
-      console.log({ word, description, examples: examplesList, initialBrief, theory })
-
-      toast({
-        title: "Word added successfully",
-        description: `"${word}" has been added to the database with your brief.`,
-      })
+      console.log('Calling onAddWord callback')
+      // Call the onAddWord callback with the form data
+      onAddWord(word, description, examplesList, initialBrief)
 
       // Reset form and close dialog
       setWord('')
