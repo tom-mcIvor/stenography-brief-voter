@@ -1,5 +1,7 @@
 import { POST } from '../route'
 import knex from '@/lib/db/connection'
+import type { Mocked } from 'jest-mock'
+import { expect } from '@jest/globals'
 
 // Mock the database connection
 jest.mock('@/lib/db/connection', () => {
@@ -47,7 +49,7 @@ describe('Words API Route', () => {
     ]
 
     // Setup mocks with proper chaining
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = knex as Mocked<typeof knex>
     mockKnex.insert.mockReturnThis()
     mockKnex.where.mockReturnThis()
     mockKnex.first.mockReturnThis()
@@ -109,7 +111,7 @@ describe('Words API Route', () => {
 
   test('should return 500 when database operation fails', async () => {
     // Mock database error
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = knex as Mocked<typeof knex>
     mockKnex.insert.mockReturnThis()
     mockKnex.into.mockRejectedValueOnce(new Error('Database error'))
 
@@ -139,7 +141,7 @@ describe('Words API Route', () => {
     const examples = ['example1', 'example2']
 
     // Setup mocks with proper chaining
-    const mockKnex = knex as jest.Mocked<typeof knex>
+    const mockKnex = knex as Mocked<typeof knex>
     mockKnex.insert.mockReturnThis()
     mockKnex.where.mockReturnThis()
     mockKnex.first.mockReturnThis()

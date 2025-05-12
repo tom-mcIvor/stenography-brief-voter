@@ -17,6 +17,10 @@ const nextConfig = {
     }
     return config
   },
+  // Add this to ensure database code only runs on server
+  experimental: {
+    serverComponentsExternalPackages: ['knex', 'sqlite3'],
+  },
 }
 
 module.exports = nextConfig

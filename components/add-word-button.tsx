@@ -213,7 +213,7 @@ export function AddWordButton({
             </Label>
             <Select
               value={theory}
-              onValueChange={(value) => setTheory(value as TheoryKey)}
+              onValueChange={(value: string) => setTheory(value as TheoryKey)}
             >
               <SelectTrigger id="theory">
                 <SelectValue placeholder="Select a theory" />
