@@ -1,0 +1,283 @@
+Metadata-Version: 2.4
+Name: mcp-chatbot
+Version: 0.1.0
+Summary: AICE chatbot
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: dotenv>=0.9.9
+Requires-Dist: fastembed>=0.6.1
+Requires-Dist: langchain-core>=0.3.60
+Requires-Dist: langchain-google-genai>=2.1.4
+Requires-Dist: mcp-use>=1.2.8
+Requires-Dist: streamlit>=1.45.0
+Requires-Dist: watchdog>=6.0.0
+
+# Chatbot Project
+
+Let's build a simple chatbot with [LangChain](https://docs.langchain.com/docs) and [Streamlit](https://docs.streamlit.io/)! This project provides a starter template that you can extend to create an intelligent conversational agent.
+
+## Setup
+
+**Fork this repo to your user account**
+
+```bash
+git clone https://github.com/[your-username]/aice-chatbot.git
+cd aice-chatbot
+```
+
+### Environment
+```bash
+cp .env.sample .env
+```
+
+You will need a Google AI API key - you can get one for free from [Google AI Studio](https://ai.google.dev/):
+
+1. Visit [ai.dev](https://ai.dev/) and sign in with your Google account
+2. Click on "Get API key" in the top right corner
+3. Create a new API key or use an existing one
+4. Copy the API key and add it to your .env file:
+
+```env
+GOOGLE_API_KEY=your-key-here
+```
+
+### Setup python venv
+```bash
+uv venv
+```
+
+### Install dependencies with [uv](https://docs.astral.sh/uv/getting-started/installation/)
+```bash
+uv pip install .
+```
+
+### Run
+Run the application with:
+
+```bash
+source .venv/bin/activate
+streamlit run main.py
+```
+
+Or with uv:
+
+```bash
+uv run m streamlit run main.py
+```
+
+## Project Structure
+- `main.py`: main project file with basic chatbot UI
+- `pyproject.toml`: Python dependencies specification
+- `.env`: environment variables file for API keys
+
+## Project Challenges
+
+### Step 1: Connect to LangChain
+
+The chatbot currently responds with a static "Hi, I'm a chatbot!" message. Your first challenge is to connect it to a language model using LangChain:
+
+> 💡 **Tip:** If you get stuck, you can check the [sample solution branch](https://github.com/CodeWithJV/aice-chatbot/tree/sample-solution) for reference.
+
+1. Import the required LangChain components in `main.py`:
+   ```python
+   from langchain_google_genai import ChatGoogleGenerativeAI
+   from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+   ```
+
+2. Initialize a language model in the `main()` function:
+   ```python
+   # Initialize chat model
+   llm = ChatGoogleGenerativeAI(
+     model="gemini-2.0-flash-thinking-exp-1219",
+     temperature=0,
+   )
+   ```
+
+3. Set up a prompt template with conversation memory:
+   ```python
+   # Set up prompt template with conversation memory
+   prompt = ChatPromptTemplate.from_messages([
+       MessagesPlaceholder(variable_name="chat_history"),
+       ("human", "{input}")
+   ])
+   
+   # Create the chain
+   chain = prompt | llm
+   ```
+
+4. Replace the static response with the language model's response:
+   ```python
+   # Get AI response
+   with st.chat_message("assistant"):
+       response = chain.invoke({
+           "chat_history": st.session_state.chat_history,
+           "input": user_input
+       })
+       
+       # Add AI response to history
+       st.session_state.chat_history.append(response)
+       st.write(response.content)
+   ```
+
+### Step 2: Implement Response Streaming
+
+Once you have the language model connected, enhance the user experience by implementing streaming responses. This makes the chatbot feel more responsive and interactive:
+
+> 💡 **Tip:** If you get stuck, you can check the [sample solution branch](https://github.com/CodeWithJV/aice-chatbot/tree/sample-solution) for reference.
+
+<details>
+<summary>Solution: Streaming implementation</summary>
+
+Replace your response handling code with this streaming version:
+```python
+# Response handling block:
+with st.chat_message("assistant"):
+    response_container = st.empty()
+    full_response = ""
+
+    # Stream the response chunks
+    for chunk in chain.stream({
+        "chat_history": st.session_state.chat_history,
+        "input": user_input
+    }):
+        full_response += chunk.content
+        response_container.markdown(full_response + "▌")
+
+    response_container.markdown(full_response)
+
+# Note: append the complete message at the end
+st.session_state.chat_history.append(AIMessage(content=full_response))
+```
+
+Key differences:
+- Uses `chain.stream()` instead of `chain.invoke()`
+- Creates an empty container with `st.empty()` to update content
+- Accumulates response chunks and updates the display in real-time
+- Shows a cursor (▌) to indicate typing
+- Appends the completed message to history
+</details>
+
+## Advanced Challenge: MCP Server Integration
+
+See if you can create an agent with an integrated MCP server using a solution such as [mcp-use](https://github.com/mcp-use/mcp-use).
+Setting up [playwright-mcp](https://www.npmjs.com/package/@playwright/mcp#docker) is a great start, as it's simple to configure.
+
+> 💡 **Tip:** This is a challenging task! If you get stuck, review the complete implementation in the [sample solution branch](https://github.com/CodeWithJV/aice-chatbot/tree/sample-solution).
+
+**Important Note:** When using Gemini models with MCP, do not use the `system_message` parameter when creating the MCPAgent, as this causes compatibility errors due to how Gemini handles function calling.
+
+### Tip: Pre-Pull Docker Image
+
+To avoid waiting time when you first run your chatbot with MCP integration, pre-pull the Docker image:
+
+```bash
+docker pull mcr.microsoft.com/playwright/mcp
+```
+
+This downloads the image ahead of time (~1GB), so your agent can start immediately when needed.
+
+<details>
+<summary>Sample Config</summary>
+
+```python
+from langchain_google_genai import ChatGoogleGenerativeAI
+from mcp_use import MCPAgent, MCPClient, set_debug
+from dotenv import load_dotenv
+
+load_dotenv()
+set_debug(1) #Provide logging from the agent in terminal. Pass in 2 instead of 1 for detailed logging.
+
+config = {
+  "mcpServers": {
+    "playwright": {
+      "command": "docker",
+      "args": ["run", "-i", "--rm", "--init", "--pull=always", "mcr.microsoft.com/playwright/mcp"]
+    }
+  }
+}
+client = MCPClient.from_dict(config)
+llm = ChatGoogleGenerativeAI(model="gemini-2.0-flash-thinking-exp-1219")  # Pass in a tool calling model
+agent = MCPAgent(llm=llm, client=client)
+
+query = "your query here!"
+
+async def getAgentResponse(agent, query):
+
+    response = await agent.run(query)
+    print(f"\nResult: {response}")
+```
+
+</details>
+
+Once you've configured an MCP server, try some of the following:
+
+- [ ] Integrate an MCP agent into your chatbot (chatbot brokers tasks to agent with a tool call)
+- [ ] Try implementing a different MCP server
+- [ ] Try rolling your own with [fastmpc](https://gofastmcp.com/getting-started/welcome)
+
+## Sample Solution
+
+If you get stuck or want to see a complete implementation, you can check out the sample solution branch on GitHub:
+
+**[View Sample Solution on GitHub](https://github.com/CodeWithJV/aice-chatbot/tree/sample-solution)**
+
+Our sample solution implements a modular architecture that makes the code maintainable and extensible:
+
+### Module Structure
+
+The codebase is organized into a modular structure:
+
+```
+aice-chatbot/
+├── lib/                  # Shared library code
+│   ├── __init__.py      # Package initialization
+│   ├── ai.py            # AI-related functionality
+│   └── utils.py         # Utility functions
+├── logs/                 # Log directory (created at runtime)
+├── main.py              # Application entry point
+├── pyproject.toml       # Project dependencies
+└── README.md            # Documentation
+```
+
+### Key Features
+
+1. **Dual Mode Interface**: Switch between a simple chatbot and a web browser agent
+   - Simple chatbot: Uses Gemini for basic Q&A with streaming responses
+   - Web browser agent: Uses MCP with Docker for web browsing capabilities
+
+2. **MCP Integration**: Full integration with the Model Context Protocol
+   - Uses Docker to run a Playwright MCP server
+   - Provides real-time status updates during agent execution
+   - Includes robust error handling for Docker/MCP issues
+
+3. **Logging**: Comprehensive logging system
+   - Logs stored in a dedicated `logs` directory
+   - Multiple log levels (DEBUG, INFO) for detailed troubleshooting
+   - Captures errors, execution times, and agent interactions
+
+4. **Developer Experience**: Features to help with development and debugging
+   - Debug panel shows agent actions in real-time
+   - Session IDs track individual interactions
+   - Clear error messages with full tracebacks
+
+### Implementation Highlights
+
+1. **Separation of Concerns**: The code is organized into logical modules:
+   - `main.py`: Application flow and UI management
+   - `ai.py`: Model creation, chains, and agent handling
+   - `utils.py`: Logging, debugging, and helper functions
+
+2. **Error Resilience**: The application handles errors gracefully
+   - Checks for required API keys before execution
+   - Verifies Docker availability for MCP mode
+   - Provides clear error messages to users
+
+3. **State Management**: Efficient handling of application state
+   - Uses Streamlit session state for conversation history
+   - Persists chat messages between interactions
+   - Maintains debug information for troubleshooting
+
+4. **Best Practices**:
+   - Code follows modern Python patterns
+   - Comprehensive docstrings and comments
+   - Asynchronous execution for non-blocking operations
