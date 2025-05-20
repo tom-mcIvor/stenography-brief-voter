@@ -5,7 +5,7 @@ try {
 } catch (e) {
   try {
     // fallback to CJS import
-    userConfig = await import("./v0-user-next.config");
+    userConfig = await import('./v0-user-next.config')
   } catch (innerError) {
     // ignore error
   }
@@ -13,6 +13,9 @@ try {
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  },
   eslint: {
     ignoreDuringBuilds: true,
   },

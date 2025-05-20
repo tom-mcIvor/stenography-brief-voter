@@ -11,6 +11,7 @@ import { TheoryIndex } from '@/components/theory-index'
 import { UserAccountNav } from '@/components/user-account-nav'
 import { type TheoryKey } from '@/components/theory-index'
 import { useToast } from '@/hooks/use-toast'
+import { Chatbot } from '@/components/Chatbot'
 
 // Sample data - in a real app, this would come from a database
 const sampleWords = [
@@ -265,32 +266,36 @@ export default function Home() {
   }
 
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Plover Brief Voting</h1>
-        <div className="flex items-center gap-4">
+        <UserAccountNav />
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2">
+          <div className="mb-8">
+            <div className="flex gap-4 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <Input placeholder="Search words..." className="pl-10" />
+              </div>
+              <AddWordButton onAddWord={handleAddWord} />
+            </div>
+            <WordList
+              words={words}
+              onVote={handleVote}
+              onCreateBrief={handleCreateBrief}
+            />
+          </div>
+        </div>
+
+        <div className="lg:col-span-1">
           <TheoryIndex />
-          <UserAccountNav />
         </div>
       </div>
 
-      <div className="flex gap-4 mb-8">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <Input
-            type="search"
-            placeholder="Search words..."
-            className="pl-10"
-          />
-        </div>
-        <AddWordButton onAddWord={handleAddWord} />
-      </div>
-
-      <WordList
-        words={words}
-        onVote={handleVote}
-        onCreateBrief={handleCreateBrief}
-      />
+      <Chatbot />
     </div>
   )
 }
